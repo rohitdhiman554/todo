@@ -4,12 +4,11 @@ import { Signin } from "../components/Signin";
 
 const queryClient = new QueryClient();
 
-const HomePage = () => {
+export default Signin();
+{
   return (
     <QueryClientProvider client={queryClient}>
       <Signin />
     </QueryClientProvider>
   );
-};
-
-export default HomePage;
+}
