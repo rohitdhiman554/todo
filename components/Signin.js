@@ -12,7 +12,6 @@ export function Signin() {
   const url = todosApi.concat("users/login");
 
   const userSignin = async (data) => {
-    console.log(data);
     const response = await fetch(url, {
       method: "POST",
       headers: {

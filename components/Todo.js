@@ -10,6 +10,7 @@ export function Todo() {
 
   const addTask = async () => {
     const url = todosApi + "tasks";
+    console.log(url);
     const token = localStorage.getItem("token");
     const data = {
       description: task,
@@ -44,6 +45,28 @@ export function Todo() {
     }
   };
 
+  const handleTask = (e) => {
+    setTask(e.target.value);
+  };
+
+  const completeTask = async (data) => {
+    let url = todosApi + "tasks/" + data.id;
+    let obj = {
+      description: data.description,
+      completed: data.completed,
+    };
+    const response = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(obj),
+    });
+    return response.json();
+  };
+
   const { isLoading, data, error } = useQuery("todoItem", getTasks);
 
   const { mutate } = useMutation(addTask, {
@@ -54,10 +77,15 @@ export function Todo() {
       console.log("error");
     },
   });
-
-  const handleTask = (e) => {
-    setTask(e.target.value);
-  };
+  const toggleComplete = useMutation(completeTask, {
+    onSuccess: () => {
+      console.log("task completed");
+      queryClient.invalidateQueries("todoItem");
+    },
+    onError: () => {
+      console.log("task not completed error");
+    },
+  });
 
   const submitTask = (e) => {
     if (e.key === "Enter") {
@@ -65,7 +93,11 @@ export function Todo() {
       setTask("");
     }
   };
-  console.log(data);
+
+  const handleToggle = (data) => {
+    toggleComplete.mutate(data);
+  };
+
   return (
     <div className="w-1/3 flex flex-col  mx-auto mt-10 border border-black">
       <div className="flex justify-center">
@@ -89,6 +121,7 @@ export function Todo() {
                   id={todo._id}
                   description={todo.description}
                   isChecked={todo.completed}
+                  onToggle={handleToggle}
                 />
               );
             })
