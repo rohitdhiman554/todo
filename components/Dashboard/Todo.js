@@ -1,12 +1,19 @@
-import { useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useQuery, useQueryClient, useMutation } from "react-query";
+import CircularProgress from "@mui/material/CircularProgress";
 
-import { todosApi } from "../utils/api";
+import { todosApi } from "../../src/utils/api";
 import { TodoList } from "./TodoList";
 
 export function Todo() {
   const [task, setTask] = useState("");
   const queryClient = useQueryClient();
+
+  const inputRef = useRef();
+
+  useEffect(() => {
+    inputRef.current.focus();
+  }, []);
 
   const addTask = async () => {
     const url = todosApi + "tasks";
@@ -50,11 +57,14 @@ export function Todo() {
   };
 
   const completeTask = async (data) => {
-    let url = todosApi + "tasks/" + data.id;
+    let url = todosApi + `tasks/${data.id}`;
+    const token = localStorage.getItem("token");
+    console.log(url);
     let obj = {
       description: data.description,
       completed: data.completed,
     };
+
     const response = await fetch(url, {
       method: "PATCH",
       headers: {
@@ -64,6 +74,7 @@ export function Todo() {
       },
       body: JSON.stringify(obj),
     });
+    await console.log(response);
     return response.json();
   };
 
@@ -99,12 +110,13 @@ export function Todo() {
   };
 
   return (
-    <div className="w-1/3 flex flex-col  mx-auto mt-10 border border-black">
+    <div className="w-1/3 flex flex-col  mx-auto mt-10 shadow-xl">
       <div className="flex justify-center">
         <h1 className="text-7xl text-[#ead7d7] ">todos</h1>
       </div>
 
       <input
+        ref={inputRef}
         className="w-full text-lg  mt-5  p-4 italic"
         placeholder="What needs to be done?"
         value={task}
@@ -113,19 +125,25 @@ export function Todo() {
       />
 
       <div className="flex flex-col">
-        {data !== undefined
-          ? data.map((todo) => {
-              return (
-                <TodoList
-                  key={todo._id}
-                  id={todo._id}
-                  description={todo.description}
-                  isChecked={todo.completed}
-                  onToggle={handleToggle}
-                />
-              );
-            })
-          : console.log("NOTODO ")}
+        {isLoading ? (
+          <div className="flex justify-center mt-4">
+            <CircularProgress />
+          </div>
+        ) : data.length > 0 ? (
+          data.map((todo) => {
+            return (
+              <TodoList
+                key={todo._id}
+                id={todo._id}
+                description={todo.description}
+                isChecked={todo.completed}
+                onToggle={handleToggle}
+              />
+            );
+          })
+        ) : (
+          <div className="flex justify-center mt-2">NO TASK'S LEFT</div>
+        )}
       </div>
     </div>
   );

@@ -1,14 +1,15 @@
 import { QueryClient, QueryClientProvider } from "react-query";
 
-import { Signin } from "../components/Signin";
+import { Signup } from "../components/Signup/Signup";
 
 const queryClient = new QueryClient();
 
-export default Signin();
-{
+const registerUser = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <Signin />
+      <Signup />
     </QueryClientProvider>
   );
-}
+};
+
+export default registerUser;

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { BsCircle, BsCheckCircle } from "react-icons/bs";
 import { AiOutlineDelete } from "react-icons/ai";
 import { useMutation, useQueryClient } from "react-query";
-import { todosApi } from "../utils/api";
+import { todosApi } from "../../src/utils/api";
 
 export const TodoList = (props) => {
   const [edit, setEdit] = useState(false);
@@ -12,7 +12,7 @@ export const TodoList = (props) => {
 
   const updateTask = async (data) => {
     let url = todosApi + "tasks/" + data.id;
-
+    const token = localStorage.getItem("token");
     let obj = {
       description: data.description,
       completed: data.isChecked,
@@ -30,13 +30,37 @@ export const TodoList = (props) => {
     return response.json();
   };
 
+  const deleteTask = async (id) => {
+    const url = todosApi + `tasks/${id}`;
+    const token = localStorage.getItem("token");
+    console.log(url);
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.json();
+  };
+
   const toggleUpdate = useMutation(updateTask, {
     onSuccess: () => {
-      console.log("success update");
       queryClient.invalidateQueries("todoItem");
     },
     onError: () => {
       console.log("update failed");
+    },
+  });
+
+  const deleteMutation = useMutation(deleteTask, {
+    onSuccess: () => {
+      queryClient.invalidateQueries("todoItem");
+    },
+    onError: () => {
+      console.log("delete failed");
     },
   });
 
@@ -63,8 +87,12 @@ export const TodoList = (props) => {
     }
   };
 
+  const handleDelete = (id) => {
+    deleteMutation.mutate(id);
+  };
+
   return (
-    <div className="flex flex-row w-full mt-4 items-center justify-center  border border-2">
+    <div className="flex flex-row w-full mt-4 items-center justify-center  border border-1 shadow hover:shadow-lg">
       <div className=" w-1/8 flex justify-center mr-4">
         {props.isChecked ? (
           <BsCheckCircle onClick={handleComplete}></BsCheckCircle>
@@ -84,7 +112,9 @@ export const TodoList = (props) => {
         />
       ) : (
         <div
-          className={` w-5/6 p-2 text-lg  `}
+          className={`${
+            props.isChecked ? "line-through" : ""
+          } w-5/6 p-2 text-lg  `}
           onDoubleClick={() => {
             setEdit(true);
           }}
@@ -92,6 +122,9 @@ export const TodoList = (props) => {
           {text}
         </div>
       )}
+      <div className="flex items-center text-2xl ">
+        <AiOutlineDelete onClick={() => handleDelete(props.id)} />
+      </div>
     </div>
   );
 };
